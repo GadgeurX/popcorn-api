@@ -244,6 +244,19 @@ export const extratorrentAnimeProviders = [];
  * The providers for scraping ExtraTorrent for movies.
  * @type {Array}
  */
+export const torrentApiMovieProviders = [
+  // {name: "ETRG BRRip", query: {with_words: "etrg x264 brrip"}},
+  // {name: "ETRG BluRay", query: {with_words: "etrg x264 bluray"}},
+  {name: "720p TRUEFRENCH", query: "TRUEFRENCH 720p", lang: "fr"},
+  {name: "1080p TRUEFRENCH", query: "TRUEFRENCH 1080p", lang: "fr"},
+  {name: "720p FRENCH", query: "FRENCH 720p", lang: "ca"},
+  {name: "1080p FRENCH", query: "FRENCH 1080p", lang: "ca"},
+];
+
+/**
+ * The providers for scraping ExtraTorrent for movies.
+ * @type {Array}
+ */
 export const extratorrentMovieProviders = [
   // {name: "ETRG BRRip", query: {with_words: "etrg x264 brrip"}},
   // {name: "ETRG BluRay", query: {with_words: "etrg x264 bluray"}},
@@ -367,7 +380,9 @@ export const maxWebRequest = 2;
  * Map object for correcting movie slugs.
  * @type {Object}
  */
-export const movieMap = {};
+export const movieMap = {
+  "alibicom": "alibi-com"
+};
 
 /**
  * The amount of object show per page. Default is `50`.

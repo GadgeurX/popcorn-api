@@ -3,7 +3,7 @@ import asyncq from "async-q";
 
 import Movie from "../../models/Movie";
 import Util from "../../Util";
-import { fanart, omdb, tmdb, trakt } from "../../config/constants";
+import { fanart, omdb, tmdb, trakt, movieMap } from "../../config/constants";
 
 /** Class for saving movies. */
 export default class Helper {
@@ -197,6 +197,63 @@ export default class Helper {
           year: traktMovie.year,
           slug: traktMovie.ids["slug"],
           synopsis: traktMovie.overview,
+          runtime: traktMovie.runtime,
+          rating: {
+            hated: 100,
+            loved: 100,
+            votes: traktMovie.votes,
+            watching: watching,
+            percentage: Math.round(traktMovie.rating * 10)
+          },
+          country: traktMovie.language,
+          last_updated: Number(new Date()),
+          images: await this._getImages(traktMovie.ids["tmdb"], traktMovie.ids["imdb"]),
+          genres: traktMovie.genres !== null ? traktMovie.genres : ["unknown"],
+          released: new Date(traktMovie.released).getTime() / 1000.0,
+          trailer: traktMovie.trailer || null,
+          certification: traktMovie.certification,
+          torrents: {}
+        };
+      }
+    } catch (err) {
+      return this._util.onError(`Trakt: Could not find any data on: ${err.path || err} with slug: '${slug}'`);
+    }
+  }
+
+  /**
+   * Get info from Trakt and make a new movie object.
+   * @param {String} slug - The slug to query trakt.tv.
+   * @returns {Movie} - A new movie.
+   */
+  async getTmdbInfo(title, year) {
+    try {
+
+      var tmdbMovie = await tmdb.call("/search/movie", {query: title, language: "fr-FR", year: year});
+      tmdbMovie = tmdbMovie["results"][0];
+      year = tmdbMovie.release_date.split("-")[0];
+      var slug = tmdbMovie.original_title.replace(/[^a-zA-Z0-9 ]/gi, "").replace(/\s+/g, "-").toLowerCase();
+      if (slug.endsWith("-")) slug = slug.substring(0, slug.length - 1);
+      slug = slug in movieMap ? movieMap[slug] : slug;
+      slug = `${slug}-${year}`;
+
+      const traktMovie = await trakt.movies.summary({
+        id: slug,
+        extended: "full"
+      });
+      
+      const traktWatchers = await trakt.movies.watching({ id: slug });
+
+      let watching = 0;
+      if (traktWatchers !== null) watching = traktWatchers.length;
+
+      if (traktMovie && traktMovie.ids["imdb"] && traktMovie.ids["tmdb"]) {
+        return {
+          _id: traktMovie.ids["imdb"],
+          imdb_id: traktMovie.ids["imdb"],
+          title: tmdbMovie.title,
+          year: traktMovie.year,
+          slug: traktMovie.ids["slug"],
+          synopsis: tmdbMovie.overview,
           runtime: traktMovie.runtime,
           rating: {
             hated: 100,

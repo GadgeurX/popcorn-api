@@ -5,6 +5,7 @@ import EZTV from "./providers/shows/EZTV";
 import HorribleSubs from "./providers/anime/HorribleSubs";
 import extratorrentAnime from "./providers/anime/ExtraTorrent";
 import extratorrentMovie from "./providers/movies/ExtraTorrent";
+import TorrentAPIMovie from "./providers/movies/TorrentApi";
 import extratorrentShow from "./providers/shows/ExtraTorrent";
 import katAnime from "./providers/anime/KAT";
 import katMovie from "./providers/movies/KAT";
@@ -16,6 +17,7 @@ import {
   collections,
   extratorrentAnimeProviders,
   extratorrentMovieProviders,
+  torrentApiMovieProviders,
   extratorrentShowProviders,
   katAnimeProviders,
   katMovieProviders,
@@ -90,6 +92,24 @@ export default class Scraper {
         const katShows = await katProvider.search(provider);
         logger.info(`${provider.name}: Done.`);
         return katShows;
+      } catch (err) {
+        return Scraper._util.onError(err);
+      }
+    });
+  }
+
+  /**
+   * Start movie scraping from ExtraTorrent.
+   * @returns {Movie[]} A list of all the scraped movies.
+   */
+  _scrapeTorrentApiMovies() {
+    return asyncq.concatSeries(torrentApiMovieProviders, async provider => {
+      try {
+        Scraper._util.setStatus(`Scraping ${provider.name}`);
+        const torrentApiProvider = new TorrentAPIMovie(provider.name, Scraper._debug);
+        const TorrentAPIMovies = await torrentApiProvider.search(provider);
+        logger.info(`${provider.name}: Done.`);
+        return TorrentAPIMovies;
       } catch (err) {
         return Scraper._util.onError(err);
       }
@@ -223,7 +243,7 @@ export default class Scraper {
     Scraper._util.setLastUpdated();
 
     asyncq.eachSeries([
-      this._scrapeEZTVShows,
+      /*this._scrapeEZTVShows,
       this._scrapeExtraTorrentShows,
       // this._scrapeKATShows,
 
@@ -234,7 +254,8 @@ export default class Scraper {
       this._scrapeExtraTorrentAnime,
       this._scrapeHorribleSubsAnime,
       // this._scrapeKATAnime,
-      this._scrapeNyaaAnime
+      this._scrapeNyaaAnime*/
+      this._scrapeTorrentApiMovies
     ], scraper => scraper())
       .then(() => Scraper._util.setStatus())
       .then(() => asyncq.eachSeries(collections, collection => Scraper._util.exportCollection(collection)))
