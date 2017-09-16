@@ -220,7 +220,7 @@ export const collections = ["anime", "movie", "show"];
  * The cron time for scraping torrents. Default is `0 0 *\/6 * * *`.
  * @type {String}
  */
-export const cronTime = "0 0 */6 * * *";
+export const cronTime = "0 0 */3 * * *";
 
 /**
  * The host of the server of the database. Default is `["localhost"]`.
@@ -247,6 +247,27 @@ export const extratorrentAnimeProviders = [];
 export const torrentApiMovieProviders = [
   // {name: "ETRG BRRip", query: {with_words: "etrg x264 brrip"}},
   // {name: "ETRG BluRay", query: {with_words: "etrg x264 bluray"}},
+  {name: "TRUEFRENCH", query: "TRUEFRENCH", lang: "fr"},
+  {name: "TRUEFRENCH DVD", query: "TRUEFRENCH DVD", lang: "fr"},
+  {name: "FRENCH DVD", query: "FRENCH DVD", lang: "ca"},
+  {name: "TRUEFRENCH HD", query: "TRUEFRENCH HD", lang: "fr"},
+  {name: "FRENCH HD", query: "FRENCH HD", lang: "ca"},
+  {name: "720p TRUEFRENCH", query: "TRUEFRENCH 720p", lang: "fr"},
+  {name: "1080p TRUEFRENCH", query: "TRUEFRENCH 1080p", lang: "fr"},
+  {name: "720p FRENCH", query: "FRENCH 720p", lang: "ca"},
+  {name: "1080p FRENCH", query: "FRENCH 1080p", lang: "ca"},
+  {name: "FRENCH", query: "FRENCH", lang: "ca"},
+];
+
+export const torrentApiShowProviders = [
+  // {name: "ETRG BRRip", query: {with_words: "etrg x264 brrip"}},
+  // {name: "ETRG BluRay", query: {with_words: "etrg x264 bluray"}},
+  {name: "FRENCH", query: "FRENCH", lang: "ca"},
+  {name: "TRUEFRENCH", query: "TRUEFRENCH", lang: "fr"},
+  {name: "TRUEFRENCH DVD", query: "TRUEFRENCH DVD", lang: "fr"},
+  {name: "FRENCH DVD", query: "FRENCH DVD", lang: "ca"},
+  {name: "TRUEFRENCH HD", query: "TRUEFRENCH HD", lang: "fr"},
+  {name: "FRENCH HD", query: "FRENCH HD", lang: "ca"},
   {name: "720p TRUEFRENCH", query: "TRUEFRENCH 720p", lang: "fr"},
   {name: "1080p TRUEFRENCH", query: "TRUEFRENCH 1080p", lang: "fr"},
   {name: "720p FRENCH", query: "FRENCH 720p", lang: "ca"},

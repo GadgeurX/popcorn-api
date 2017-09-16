@@ -3,7 +3,7 @@ import asyncq from "async-q";
 
 import Show from "../../models/Show";
 import Util from "../../Util";
-import { fanart, trakt, tmdb, tvdb } from "../../config/constants";
+import { fanart, trakt, tmdb, tvdb, showMap } from "../../config/constants";
 
 /** Class for saving shows. */
 export default class Helper {
@@ -311,6 +311,71 @@ export default class Helper {
           year: traktShow.year,
           slug: traktShow.ids["slug"],
           synopsis: traktShow.overview,
+          runtime: traktShow.runtime,
+          rating: {
+            hated: 100,
+            loved: 100,
+            votes: traktShow.votes,
+            watching: watching,
+            percentage: Math.round(traktShow.rating * 10)
+          },
+          country: traktShow.country,
+          network: traktShow.network,
+          air_day: traktShow.airs.day,
+          air_time: traktShow.airs.time,
+          status: traktShow.status,
+          num_seasons: 0,
+          last_updated: Number(new Date()),
+          latest_episode: 0,
+          images: await this._getImages(traktShow.ids["tmdb"], traktShow.ids["tvdb"]),
+          genres: traktShow.genres !== null ? traktShow.genres : ["unknown"],
+          episodes: []
+        };
+      }
+    } catch (err) {
+      return this._util.onError(`Trakt: Could not find any data on: ${err.path || err} with slug: '${slug}'`);
+    }
+  }
+
+  /**
+   * Get info from Trakt and make a new show object.
+   * @param {String} slug - The slug to query https://trakt.tv/.
+   * @returns {Show} - A new show without the episodes attached.
+   */
+  async getTmdbInfo(title) {
+    try {
+
+      var tmdbMovie = await tmdb.call("/search/tv", {query: title, language: "fr-FR"});
+      tmdbMovie = tmdbMovie["results"][0];
+      var title = tmdbMovie.original_name;
+      title = title.replace("'", " ");
+      title = title.replace("é", "e");
+      title = title.replace("è", "e");
+      var slug = title.replace(/[^a-zA-Z0-9 ]/gi, "").replace(/\s+/g, "-").toLowerCase();
+      if (slug.endsWith("-")) slug = slug.substring(0, slug.length - 1);
+      slug = slug in showMap ? showMap[slug] : slug;
+
+
+      const traktShow = await trakt.shows.summary({
+        id: slug,
+        extended: "full"
+      });
+      const traktWatchers = await trakt.shows.watching({
+        id: slug
+      });
+
+      let watching = 0;
+      if (traktWatchers !== null) watching = traktWatchers.length;
+
+      if (traktShow && traktShow.ids["imdb"] && traktShow.ids["tmdb"] && traktShow.ids["tvdb"]) {
+        return {
+          _id: traktShow.ids["imdb"],
+          imdb_id: traktShow.ids["imdb"],
+          tvdb_id: traktShow.ids["tvdb"],
+          title: tmdbMovie.name,
+          year: traktShow.year,
+          slug: traktShow.ids["slug"],
+          synopsis: tmdbMovie.overview,
           runtime: traktShow.runtime,
           rating: {
             hated: 100,

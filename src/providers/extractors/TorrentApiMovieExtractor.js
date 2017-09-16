@@ -54,9 +54,13 @@ export default class Extractor extends BaseExtractor {
       }
       const $ = cheerio.load(html);
       if (movie.provider == "T411")
-        movie.torrents[movie.language][movie.quality].url = $("td.trTorrentDL.citems").eq(2).children('a').attr("href");
+        movie.torrents[movie.language][movie.quality].url = $("td.tTorrentDL.citems").eq(2).children('a').attr("href");
       else if (movie.provider == "Torrent9")
+      {
         movie.torrents[movie.language][movie.quality].url = $("div.download-btn").eq(1).children('a').attr("href");
+        if (movie.torrents[movie.language][movie.quality].url == null)
+          movie.torrents[movie.language][movie.quality].url = movie.torrent.link;
+      }
       const newMovie = await this._helper.getTmdbInfo(movie.movieTitle, movie.year);
       if (newMovie && newMovie._id) return await this._helper.addTorrents(newMovie, movie.torrents);
     } catch (err) {
@@ -75,13 +79,30 @@ export default class Extractor extends BaseExtractor {
     let movieTitle = torrent.title.match(regex)[1];
     if (movieTitle.endsWith(" ")) movieTitle = movieTitle.substring(0, movieTitle.length - 1);
     movieTitle = movieTitle.replace(/\./g, " ");
+    if (movieTitle.indexOf("-") != -1)
+      movieTitle = movieTitle.split("-")[0];
+    if (movieTitle.indexOf("DVDRIP") != -1)
+      movieTitle = movieTitle.split("DVDRIP")[0];
+    if (movieTitle.indexOf("HD") != -1)
+      movieTitle = movieTitle.split("HD")[0];
+    if (movieTitle.indexOf("720p") != -1)
+      movieTitle = movieTitle.split("720p")[0];
+    if (movieTitle.indexOf("1080p") != -1)
+      movieTitle = movieTitle.split("1080p")[0];
+    if (movieTitle.match(/(.*)(\d{4}) */))
+      movieTitle = movieTitle.match(/(.*)(\d{4}) */)[1];
     let slug = movieTitle.replace(/[^a-zA-Z0-9 ]/gi, "").replace(/\s+/g, "-").toLowerCase();
     if (slug.endsWith("-")) slug = slug.substring(0, slug.length - 1);
     slug = slug in movieMap ? movieMap[slug] : slug;
     var year = "";
     if (torrent.title.match(/(.*)(\d{4})(.*)/))
       year = torrent.title.match(/(.*)(\d{4})(.*)/)[2];
-    var quality = "720p";
+
+
+
+    var quality = "480p";
+    if (torrent.title.match(/(.*)(BLURAY|HD|HD)(.*)/i))
+      quality = "720p"
     if (torrent.title.match(/(.*)(\d{3,4}p)(.*)/))
       quality = torrent.title.match(/(.*)(\d{3,4}p)(.*)/)[2];
     if (quality == "080p")

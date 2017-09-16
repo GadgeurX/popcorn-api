@@ -227,11 +227,14 @@ export default class Helper {
    */
   async getTmdbInfo(title, year) {
     try {
-
       var tmdbMovie = await tmdb.call("/search/movie", {query: title, language: "fr-FR", year: year});
       tmdbMovie = tmdbMovie["results"][0];
+      title = tmdbMovie.original_title;
       year = tmdbMovie.release_date.split("-")[0];
-      var slug = tmdbMovie.original_title.replace(/[^a-zA-Z0-9 ]/gi, "").replace(/\s+/g, "-").toLowerCase();
+      title = title.replace("'", " ");
+      title = title.replace("é", "e");
+      title = title.replace("è", "e");
+      var slug = title.replace(/[^a-zA-Z0-9 ]/gi, "").replace(/\s+/g, "-").toLowerCase();
       if (slug.endsWith("-")) slug = slug.substring(0, slug.length - 1);
       slug = slug in movieMap ? movieMap[slug] : slug;
       slug = `${slug}-${year}`;
@@ -273,7 +276,7 @@ export default class Helper {
         };
       }
     } catch (err) {
-      return this._util.onError(`Trakt: Could not find any data on: ${err.path || err} with slug: '${slug}'`);
+      return this._util.onError(`Trakt: Movie '${title}' Could not find any data on: ${err.path || err} with slug: '${slug}'`);
     }
   }
 

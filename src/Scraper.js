@@ -7,6 +7,7 @@ import extratorrentAnime from "./providers/anime/ExtraTorrent";
 import extratorrentMovie from "./providers/movies/ExtraTorrent";
 import TorrentAPIMovie from "./providers/movies/TorrentApi";
 import extratorrentShow from "./providers/shows/ExtraTorrent";
+import TorrentAPIShow from "./providers/shows/TorrentApi";
 import katAnime from "./providers/anime/KAT";
 import katMovie from "./providers/movies/KAT";
 import katShow from "./providers/shows/KAT";
@@ -18,6 +19,7 @@ import {
   extratorrentAnimeProviders,
   extratorrentMovieProviders,
   torrentApiMovieProviders,
+  torrentApiShowProviders,
   extratorrentShowProviders,
   katAnimeProviders,
   katMovieProviders,
@@ -110,6 +112,24 @@ export default class Scraper {
         const TorrentAPIMovies = await torrentApiProvider.search(provider);
         logger.info(`${provider.name}: Done.`);
         return TorrentAPIMovies;
+      } catch (err) {
+        return Scraper._util.onError(err);
+      }
+    });
+  }
+
+  /**
+   * Start movie scraping from ExtraTorrent.
+   * @returns {Movie[]} A list of all the scraped movies.
+   */
+  _scrapeTorrentApiShows() {
+    return asyncq.concatSeries(torrentApiShowProviders, async provider => {
+      try {
+        Scraper._util.setStatus(`Scraping ${provider.name}`);
+        const torrentApiProvider = new TorrentAPIShow(provider.name, Scraper._debug);
+        const TorrentAPIShows = await torrentApiProvider.search(provider);
+        logger.info(`${provider.name}: Done.`);
+        return TorrentAPIShows;
       } catch (err) {
         return Scraper._util.onError(err);
       }
@@ -255,7 +275,8 @@ export default class Scraper {
       this._scrapeHorribleSubsAnime,
       // this._scrapeKATAnime,
       this._scrapeNyaaAnime*/
-      this._scrapeTorrentApiMovies
+      this._scrapeTorrentApiMovies,
+      this._scrapeTorrentApiShows
     ], scraper => scraper())
       .then(() => Scraper._util.setStatus())
       .then(() => asyncq.eachSeries(collections, collection => Scraper._util.exportCollection(collection)))
